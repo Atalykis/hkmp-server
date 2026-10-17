@@ -1,0 +1,32 @@
+services:
+  pouch:
+    image: maximalmax90/hkmpserver:v2.4.3
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        if [ ! -s /HKMP/HkmpPouch.dll ]; then
+          trap 'rm -f /HKMP/HkmpPouch.dll.tmp' EXIT
+          curl -fL --retry 3 \
+            https://github.com/PrashantMohta/HkmpPouch/releases/download/v2.0.0r/HkmpPouch.dll \
+            -o /HKMP/HkmpPouch.dll.tmp
+          mv /HKMP/HkmpPouch.dll.tmp /HKMP/HkmpPouch.dll
+        fi
+    volumes:
+      - hkmp_data:/HKMP
+    restart: "no"
+
+  hkmp:
+    image: maximalmax90/hkmpserver:v2.4.3
+    depends_on:
+      pouch:
+        condition: service_completed_successfully
+    environment:
+      PORT: ${HKMP_PORT:-2222}
+    ports:
+      - "${HKMP_PORT:-2222}:${HKMP_PORT:-2222}/udp"
+    volumes:
+      - hkmp_data:/HKMP
+    restart: unless-stopped
+
+volumes:
+  hkmp_data:

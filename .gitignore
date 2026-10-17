@@ -1,0 +1,3 @@
+# Configuration, sauvegardes et journaux du serveur (ne jamais publier)
+/data/
+.env
